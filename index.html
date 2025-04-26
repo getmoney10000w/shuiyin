@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>批量图片文字水印工具</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    #header {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-bottom: 1px solid #ccc;
+    }
+    .brand-logo {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    #main-container {
+      display: flex;
+      justify-content: space-between;
+      padding: 20px;
+    }
+    #left-panel {
+      width: 40%;
+    }
+    #right-panel {
+      width: 55%;
+    }
+    .card {
+      margin: 10px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-gap: 10px;
+    }
+    .settings-grid label {
+      display: flex;
+      align-items: center;
+    }
+    .upload-label {
+      display: block;
+      margin-top: 10px;
+    }
+    #preview-canvas {
+      width: 100%;
+      height: 600px;
+    }
+    #panel-divider {
+      width: 1px;
+      height: 100%;
+      background-color: #ccc;
+      margin: 0 20px;
+    }
+    .setting-field {
+      display: flex;
+      align-items: center;
+    }
+    .setting-value {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <div class="brand-logo">🖼️</div>
+    <div class="brand-title">批量图片文字水印工具</div>
+  </div>
+  <div id="main-container">
+    <div id="left-panel">
+      <div id="upload-section" class="card">
+        <div class="section-title">图片上传</div>
+        <input type="file" id="file-input" webkitdirectory directory multiple style="display:none;">
+        <label for="file-input" class="upload-label">选择图片文件夹（支持多层目录）</label>
+        <input type="file" id="file-pick-input" multiple accept="image/*" style="display:none;">
+        <label for="file-pick-input" class="upload-label">选择图片文件（可多选）</label>
+        <div id="file-list"></div>
+      </div>
+      <div id="watermark-settings" class="card">
+        <div class="section-title">水印设置</div>
+        <div class="settings-grid">
+          <label>内容：</label>
+          <div class="setting-field"><textarea id="wm-text" rows="3" style="resize:vertical;width:100%;min-height:48px;">水印示例</textarea></div>
+
+          <label>字体：</label>
+          <div class="setting-field">
+            <select id="wm-font">
+              <option value="Microsoft YaHei,微软雅黑,SimHei,sans-serif">微软雅黑</option>
+              <option value="SimSun">宋体</option>
+              <option value="MuyaoSoftbrush,Microsoft YaHei,Arial,sans-serif">墨瑶软笔</option>
+              <option value="ZhanKuXiaoWeiLOGO,Microsoft YaHei,Arial,sans-serif">站酷小薇LOGO体</option>
+              <option value="YuYangTi,Microsoft YaHei,Arial,sans-serif">站酷仓耳渔阳体</option>
+              <option value="Attemptyon,Microsoft YaHei,Arial,sans-serif">Attemptyon</option>
+            </select>
+          </div>
+
+          <label>大小：</label>
+          <div class="setting-field"><input type="range" id="wm-size" min="10" max="200" value="100"> <span class="setting-value" id="val-size">100px</span></div>
+
+          <label>颜色：</label>
+          <div class="setting-field"><input type="color" id="wm-color" value="#FF0000"> <span class="setting-value" id="val-color">#FF0000</span></div>
+
+          <label>透明度：</label>
+          <div class="setting-field"><input type="range" id="wm-opacity" min="0" max="1" step="0.01" value="0.5"> <span class="setting-value" id="val-opacity">0.5</span></div>
+
+          <label>旋转：</label>
+          <div class="setting-field"><input type="range" id="wm-rotate" min="-180" max="180" value="0"> <span class="setting-value" id="val-rotate">0°</span></div>
+
+          <label>X位置：</label>
+          <div class="setting-field"><input type="range" id="wm-x" min="0" max="100" value="50"> <span class="setting-value" id="val-x">50%</span></div>
+
+          <label>Y位置：</label>
+          <div class="setting-field"><input type="range" id="wm-y" min="0" max="100" value="50"> <span class="setting-value" id="val-y">50%</span></div>
+        </div>
+      </div>
+    </div>
+    <div id="panel-divider"></div>
+    <div id="right-panel">
+      <div id="preview-section" class="card">
+        <div class="section-title">预览</div>
+        <div id="mode-toggle">
+          <label><input type="radio" name="wm-mode" value="global" checked> 全部图片水印位置同步</label>
+          <label><input type="radio" name="wm-mode" value="single"> 仅调整当前图片水印位置</label>
+        </div>
+        <div id="preview-controls">
+          <button id="prev-btn">上一张</button>
+          <span id="preview-index">1 / 1</span>
+          <button id="next-btn">下一张</button>
+          <button id="process-btn">批量处理并下载</button>
+        </div>
+        <canvas id="preview-canvas"></canvas>
+        <div id="drag-tip">拖拽水印调整位置</div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
